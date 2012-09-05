@@ -1,0 +1,98 @@
+//Write a program to evaluate a simple mathematical expression like 4 + 2*6/3 - 3
+		
+		
+		final int LEFT_ASSOC  = 0;  
+	    final int RIGHT_ASSOC = 1; 
+	    
+		private static HashMap<String, Integer> operation = new HashMap<String, Integer>();
+		static{
+		 operation.put("+", 2);
+		 operation.put("-", 2);
+		 operation.put("*", 5);
+		 operation.put("/", 5);	
+		}
+		 
+		 // 1) converts an expression given in conventional infix notation into Reverse Polish Notation:
+		public String[] reverse_polish(String[] inputTokens){
+	    
+			ArrayList<String> out = new ArrayList<String>();
+			Stack<String> stack = new Stack<String>();
+			
+			for(String token : inputTokens){
+				if (isOperation(token)){
+					while(!stack.empty() && isOperation(stack.peek())){
+						// pop the higher or the same precedence before it in the stack to output
+						if(cmpPrecedence(token, stack.peek()) <= 0){
+							out.add(stack.pop());
+						}
+						else{
+							break;
+						}
+					} 
+					stack.push(token); // only push higher precedence operation
+				} 
+				else if(token.equals("(")){
+					stack.push(token);
+				}
+				else if(token.equals(")")){ // ")" doesn't push into stack
+					while(!stack.isEmpty() && !stack.peek().equals("(")){
+						out.add(stack.pop());
+					}		
+					stack.pop(); // eliminate "(". 
+				}
+				else{
+					out.add(token); // token is a number
+				}							
+			} 
+			 // if there are any elements pushed before "(", add them to output
+			while(!stack.empty()){
+				out.add(stack.pop()); 
+			}	
+			
+			String[] output = new String[out.size()];  
+			return out.toArray(output);			
+		}
+
+		//2) Evaluating expressions in Reverse Polish Notation
+		public double RPNtoDouble(String[] tokens){
+			double result = 0;
+			Stack<String> stack = new Stack<String>();
+			
+			for(String token : tokens){
+				if(!isOperation(token)){
+					stack.push(token);
+				}
+				else{
+					double p2 = Double.valueOf(stack.pop());
+					double p1 = Double.valueOf(stack.pop());				
+					if (token.compareTo("+") == 0){					
+						 result = p1 + p2;
+					}
+					else if(token.compareTo("-") == 0){						
+						result = p1 - p2;
+					}
+					else if (token.compareTo("*") == 0 && p1!=0 && p2!= 0){
+						result = p1 * p2;
+					}
+					else if (token.compareTo("/") == 0 && p1!=0 && p2!=0 ){
+						result = p1 / p2;
+					}
+					// push the result back to stack
+					stack.push(String.valueOf(result));
+				}
+			}
+			return Double.valueOf(stack.pop());
+		}
+		
+		private int cmpPrecedence(String token1, String token2) {	
+			if(!isOperation(token1) || !isOperation(token2)){
+				throw new IllegalArgumentException("Invalid tokens:" + token1 + " " + token2 );
+			}
+			return operation.get(token1) - operation.get(token2);
+		}
+			
+		private boolean isOperation(String token) {					 
+			return operation.containsKey(token);
+		}
+		
+		
